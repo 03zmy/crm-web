@@ -17,28 +17,18 @@
         :disabled="dialogProps.isView"
         :hide-required-asterisk="dialogProps.isView"
       >
-        <el-form-item v-if="dialogProps.title !== '重置'" label="用户名" prop="account">
-          <el-input v-model="dialogProps.row!.account" placeholder="请填写用户名（2-20字）" clearable></el-input>
+        <el-form-item label="部门名称" prop="name">
+          <el-input v-model="dialogProps.row!.name" placeholder="请填写部门名称" clearable maxlength="50" show-word-limit></el-input>
         </el-form-item>
-        <el-form-item v-if="dialogProps.title !== '重置'" label="昵称" prop="nickname">
-          <el-input v-model="dialogProps.row!.nickname" placeholder="请填写昵称（2-20字）" clearable></el-input>
-        </el-form-item>
-        <el-form-item v-if="dialogProps.title === '新增' || dialogProps.title === '重置'" label="密码" prop="password">
-          <el-input v-model="dialogProps.row!.password" show-password type="password" placeholder="请填写密码"></el-input>
-        </el-form-item>
-        <el-form-item v-if="dialogProps.title === '新增' || dialogProps.title === '重置'" label="确认密码" prop="submitPassword">
-          <el-input v-model="dialogProps.row!.submitPassword" show-password type="password" placeholder="请填写密码"></el-input>
-        </el-form-item>
-        <el-form-item v-if="dialogProps.title !== '重置' && dialogProps.row!.type == 0" label="角色" prop="roleId">
-          <el-select v-model="dialogProps.row!.roleId" filterable placeholder="请选择角色" class="w-full">
-            <el-option v-for="item in dialogProps.roleList" :key="item.Id" :label="item.name" :value="item.id" class="isabel-option" />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="dialogProps.title !== '重置'" label="状态" prop="status">
-          <el-radio-group v-model="dialogProps.row!.status">
-            <el-radio :label="1" border>正常</el-radio>
-            <el-radio :label="0" border>停用</el-radio>
-          </el-radio-group>
+        <el-form-item label="父级部门" prop="parentId" v-if="dialogProps.row.level !== 1">
+          <el-cascader
+            v-model="dialogProps.row!.parentId"
+            :props="{ value: 'id', label: 'name', emitPath: false, checkStrictly: true }"
+            placeholder="请选择父级部门"
+            :options="departmentList"
+            :show-all-levels="false"
+            filterable
+          />
         </el-form-item>
       </el-form>
     </div>
@@ -55,10 +45,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, FormInstance } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
-import { getRoleList } from '@/api/modules/role'
-import { getManagerInfoApi } from '@/api/modules/manager'
-import { useAppStoreWithOut } from '@/store/modules/app'
-const appStore = useAppStoreWithOut()
+import { DepartmentApi } from '@/api/modules/department'
 interface DialogProps {
   title: string
   isView: boolean
@@ -68,13 +55,13 @@ interface DialogProps {
   maxHeight?: number | string
   api?: (params: any) => Promise<any>
   getTableList?: () => Promise<any>
-  roleList?: any
 }
 const dialogVisible = ref(false)
+const departmentList = ref<Array<any>>([])
 const dialogProps = ref<DialogProps>({
   isView: false,
   title: '',
-  row: { status: 1, type: 0 },
+  row: {},
   labelWidth: 160,
   fullscreen: true,
   maxHeight: '500px'
@@ -84,76 +71,39 @@ const dialogProps = ref<DialogProps>({
 const acceptParams = (params: DialogProps): void => {
   params.row = { ...dialogProps.value.row, ...params.row }
   dialogProps.value = { ...dialogProps.value, ...params }
+  getDepartmentList()
   dialogVisible.value = true
+}
+
+const getDepartmentList = async () => {
+  try {
+    const res = await DepartmentApi.list({})
+    departmentList.value = Array.isArray(res.data) ? res.data : []
+  } catch (error) {
+    ElMessage.error('获取部门列表失败')
+  }
 }
 
 defineExpose({
   acceptParams
 })
-
-// 获取角色列表
-const getFormRoleList = async () => {
-  const { data } = await getRoleList()
-  dialogProps.value.roleList = data
-}
-await getFormRoleList()
-
 const rules = reactive({
-  account: [
-    { required: true, message: '用户名不能为空', trigger: 'blur' },
-    { min: 2, max: 20, message: '字数为2-20个字' }
-  ],
-  nickname: [
-    { required: true, message: '昵称不能为空', trigger: 'blur' },
-    { min: 2, max: 20, message: '字数为2-20个字' }
-  ],
-  password: [
-    {
-      required: true,
-      trigger: 'blur',
-      message: '密码不能为空'
-    },
-    {
-      //插入正则验证：大小写、数字、至少8位、不常用字符
-      pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[._~!@#$^&*])[A-Za-z0-9._~!@#$^&*]{8,16}$/,
-      message: '密码应当至少8位且含有数字、大小写字母及特殊字符'
-    }
-  ],
-  submitPassword: [
-    {
-      required: true,
-      validator: (_rule: any, value: string, callback: Function) => {
-        if (!value) {
-          return callback(new Error('确认密码不能为空'))
-        }
-        if (dialogProps.value.row.password && dialogProps.value.row.submitPassword && dialogProps.value.row.password !== dialogProps.value.row.submitPassword) {
-          return callback(new Error('两次输入的密码不一致'))
-        }
-        return callback()
-      },
-      trigger: ['blur']
-    }
-  ],
-  roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-  type: [{ required: true, message: '请选择账号类型', trigger: 'change' }]
+  name: [{ required: true, message: '请输入部门名称', trigger: 'blur' }]
 })
 const ruleFormRef = ref<FormInstance>()
+
 const handleSubmit = () => {
   ruleFormRef.value!.validate(async (valid) => {
     if (!valid) return
     try {
-      await dialogProps.value.api!(dialogProps.value.row).then((_) => {
-        // 如果被编辑的是当前用户，则刷新
-        if (dialogProps.value.row.Id === appStore.$state.userInfo.Id)
-          getManagerInfoApi().then((res) => {
-            appStore.setUserinfo(res.data)
-          })
-      })
-      ElMessage.success({ message: `${dialogProps.value.title}管理员成功！` })
+      delete dialogProps.value.row['updateTime']
+      delete dialogProps.value.row['createTime']
+      await dialogProps.value.api!(dialogProps.value.row)
+      ElMessage.success({ message: `${dialogProps.value.title}成功！` })
       dialogProps.value.getTableList!()
       dialogVisible.value = false
       ruleFormRef.value!.resetFields()
+      getDepartmentList()
       cancelDialog(true)
     } catch (error) {
       console.log(error)
@@ -164,10 +114,8 @@ const cancelDialog = (isClean?: boolean) => {
   dialogVisible.value = false
   let condition = ['查看', '编辑']
   if (condition.includes(dialogProps.value.title) || isClean) {
-    dialogProps.value.row = { status: 1, type: 0 }
+    dialogProps.value.row = {}
     ruleFormRef.value!.resetFields()
   }
 }
 </script>
-
-<style scoped lang="less"></style>
