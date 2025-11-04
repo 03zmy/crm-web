@@ -11,7 +11,7 @@
       :searchCol="{ xs: 2, sm: 3, md: 4, lg: 6, xl: 8 }"
     >
       <!-- 表格 header 按钮 -->
-      <template #tableHeader="scope">
+      <template #tableHeader="scope" v-if="props.isShowHeader">
         <el-button type="primary" :icon="CirclePlus" v-hasPermi="['sys:customer:add']" @click="openDrawer('新增')">新增客户</el-button>
         <el-button type="primary" :icon="Download" v-hasPermi="['sys:customer:export']" plain @click="downloadFile">导出客户</el-button>
         <el-button type="danger" :icon="Delete" :disabled="!scope.isSelected" v-hasPermi="['sys:customer:remove']" @click="batchDelete(scope.selectedListIds)">批量删除</el-button>
@@ -43,6 +43,16 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 // 获取 ProTable 元素，调用其获取刷新数据方法（还能获取到当前查询参数，方便导出携带参数）
 const proTable = ref()
 
+const props = defineProps({
+  isShowHeader: {
+    type: Boolean,
+    default: true
+  }
+})
+
+defineExpose({
+  proTable
+})
 // 如果表格需要初始化请求参数，直接定义传给 ProTable(之后每次请求都会自动带上该参数，此参数更改之后也会一直带上，改变此参数会自动刷新表格数据)
 const initParam = reactive({ isPublic: 0 })
 const dataSize = ref(0)
@@ -138,7 +148,7 @@ const columns: ColumnProps[] = [
     label: '创建时间',
     width: 200
   },
-  { prop: 'operation', label: '操作', fixed: 'right', width: 330 }
+  { prop: 'operation', label: '操作', fixed: 'right', width: 330, isShow: props.isShowHeader }
 ]
 // 导出列表
 const downloadFile = async () => {

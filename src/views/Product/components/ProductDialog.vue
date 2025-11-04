@@ -63,6 +63,7 @@ import { ElMessage, FormInstance } from 'element-plus'
 import { Dialog } from '@/components/Dialog'
 import { ProductStatusList } from '@/configs/enum'
 import UploadImg from '@/components/Upload/Img.vue'
+
 interface DialogProps {
   title: string
   isView: boolean
@@ -79,7 +80,7 @@ const dialogProps = ref<DialogProps>({
   title: '',
   row: {},
   labelWidth: 120,
-  fullscreen: true,
+  fullscreen: false,
   maxHeight: '500px'
 })
 
