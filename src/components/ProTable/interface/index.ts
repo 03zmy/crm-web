@@ -78,7 +78,6 @@ export type HeaderRenderScope<T> = {
 }
 
 export interface ColumnProps<T = any> extends Partial<Omit<TableColumnCtx<T>, 'children' | 'renderCell' | 'renderHeader'>> {
-  /** 是否是标签展示 */
   tag?: boolean
   /** 是否显示在表格当中 */
   isShow?: boolean

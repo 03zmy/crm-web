@@ -5,10 +5,9 @@
     :fullscreen="dialogProps.fullscreen"
     :max-height="dialogProps.maxHeight"
     :cancel-dialog="cancelDialog"
-    width="70%"
-    top="8vh"
+    width="80%"
   >
-    <CustomerManage :is-show-header="false" ref="customerManageRef" />
+    <ProductManage :is-show-header="false" :status="1" ref="productManageRef" />
     <template #footer>
       <slot name="footer">
         <el-button @click="cancelDialog">取消</el-button>
@@ -21,7 +20,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Dialog } from '@/components/Dialog'
-import CustomerManage from '@/views/Customer/CustomerManage.vue'
+import ProductManage from '@/views/Product/ProductManage.vue'
 import { ElMessage } from 'element-plus'
 
 interface DialogProps {
@@ -35,7 +34,7 @@ interface DialogProps {
   getTableList?: () => Promise<any>
 }
 
-const customerManageRef = ref()
+const productManageRef = ref()
 
 const dialogVisible = ref(false)
 const dialogProps = ref<DialogProps>({
@@ -62,17 +61,17 @@ const cancelDialog = () => {
   dialogVisible.value = false
 }
 
-const emit = defineEmits(['getCustomerData'])
+const emit = defineEmits(['getProductData'])
 const getCustomerData = () => {
-  console.log(customerManageRef.value.proTable)
-  if (customerManageRef.value.proTable.selectedListIds.length > 1) {
-    ElMessage.error({ message: `只能选择一个客户` })
-  } else if (customerManageRef.value.proTable.selectedListIds.length === 1) {
+  if (productManageRef.value.proTable.selectedListIds.length > 1) {
+    ElMessage.error({ message: `只能选择一个商品` })
+  } else if (productManageRef.value.proTable.selectedListIds.length === 1) {
     const param = {
-      id: customerManageRef.value.proTable.selectedListIds[0],
-      name: customerManageRef.value.proTable.selectedList[0].name
+      id: productManageRef.value.proTable.selectedListIds[0],
+      name: productManageRef.value.proTable.selectedList[0].name,
+      price: productManageRef.value.proTable.selectedList[0].price
     }
-    emit('getCustomerData', param)
+    emit('getProductData', param)
     dialogVisible.value = false
   }
 }

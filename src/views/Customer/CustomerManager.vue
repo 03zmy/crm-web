@@ -17,7 +17,7 @@
         <el-button type="danger" :icon="Delete" :disabled="!scope.isSelected" v-hasPermi="['sys:customer:remove']" @click="batchDelete(scope.selectedListIds)">批量删除</el-button>
       </template>
       <!-- 表格操作 -->
-      <template #operation="scope">
+      <template #operation="scope" v-if="props.isShowHeader">
         <el-button type="primary" link :icon="EditPen" v-hasPermi="['sys:customer:edit']" @click="openDrawer('编辑', scope.row)">编辑</el-button>
         <el-button type="danger" link :icon="Delete" v-hasPermi="['sys:customer:remove']" @click="batchDelete([scope.row.id])">删除</el-button>
         <el-button type="warning" link :icon="Share" v-hasPermi="['sys:customer:share']" @click="customerToPublic(scope.row.id)">转入公海</el-button>
@@ -174,7 +174,7 @@ const openDrawer = (title: string, row: Partial<any> = {}) => {
     isView: title === '查看',
     api: CustomerApi.saveOrEdit,
     getTableList: proTable.value.getTableList,
-    maxHeight: '500px'
+    maxHeight: '450px'
   }
   dialogRef.value.acceptParams(params)
 }

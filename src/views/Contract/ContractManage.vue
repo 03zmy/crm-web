@@ -16,9 +16,11 @@
       <!-- 表格操作 -->
       <template #operation="scope">
         <el-button type="primary" link :icon="EditPen" v-hasPermi="['sys:contract:edit']" @click="openDrawer('编辑', scope.row)">编辑</el-button>
+        <el-button type="success" link :icon="MessageBox" v-hasPermi="['sys:contract:print']" @click="openPrintDrawer(' 打印合同 ', scope.row)"> 打印</el-button>
       </template>
     </ProTable>
     <ContractDialog ref="dialogRef" />
+    <PrintContractDialog ref="printDialogRef" />
   </div>
 </template>
 
@@ -28,9 +30,10 @@ import type { ColumnProps } from '@/components/ProTable/interface'
 import ProTable from '@/components/ProTable/index.vue'
 import { ContractApi } from '@/api/modules/contract/index'
 
-import { CirclePlus, EditPen } from '@element-plus/icons-vue'
+import { CirclePlus, EditPen, MessageBox } from '@element-plus/icons-vue'
 import ContractDialog from './components/ContractDialog.vue'
 import { ContractStatusList } from '@/configs/enum'
+import PrintContractDialog from './components/PrintContractDialog.vue'
 
 // 获取 ProTable 元素, 调用其获取刷新数据方法 (还能获取到当前查询参数, 方便导出携带参数)
 const proTable = ref()
@@ -114,8 +117,19 @@ const openDrawer = (title: string, row: Partial<any> = {}) => {
     isView: title === '查看',
     api: ContractApi.saveOrEdit,
     getTableList: proTable.value.getTableList,
-    maxHeight: '560px'
+    maxHeight: '550px'
   }
   dialogRef.value.acceptParams(params)
+}
+const printDialogRef = ref()
+const openPrintDrawer = (title: string, row: Partial<any> = {}) => {
+  let params = {
+    title,
+    row: { ...row },
+    isView: true,
+    maxHeight: '600px',
+    fullscreen: true
+  }
+  printDialogRef.value.acceptParams(params)
 }
 </script>
